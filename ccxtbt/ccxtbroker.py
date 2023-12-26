@@ -24,6 +24,7 @@ import collections
 import json
 from datetime import datetime
 
+import ccxt
 from backtrader import BrokerBase, Order
 from backtrader.position import Position
 from backtrader.utils.py3 import queue, with_metaclass
@@ -285,7 +286,11 @@ class CCXTBroker(with_metaclass(MetaCCXTBroker, BrokerBase)):
         created = int(data.datetime.datetime(0).timestamp()*1000)
         # Extract CCXT specific params if passed to the order
         params = params['params'] if 'params' in params else params
-        params['created'] = created  # Add timestamp of order creation for backtesting
+        # TODO 根据exchange来确定是否传递这个参数，币安不支持这个参数
+        if isinstance(self.store.exchange, ccxt.binance):
+            pass
+        else:
+            params['created'] = created  # Add timestamp of order creation for backtesting
         ret_ord = self.store.create_order(symbol=data.p.dataname, order_type=order_type, side=side, amount=amount, price=price, params=params)
         order = CCXTOrder(owner, data, exectype, side, amount, price, ret_ord)
         self.open_orders.append(order)
